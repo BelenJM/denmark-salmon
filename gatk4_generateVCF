@@ -1,1 +1,9 @@
+# merge VCF
+# copy all vcf into the same folder and merge them
+for i in $(cat ../gatk4_vcf/list); do echo $i; cp ../gatk4_vcf/my_database_$i/$i.vcf .;done
+# merge all VCF using bcftools
+bcftools concat -o gatk4_laks.vcf NC_0273{00..28}.1.vcf 
+# all the nuclear chromosomes, from ssa01 to ssa29 
+# (see list of chromosomes here: https://www.ncbi.nlm.nih.gov/genome/?term=txid8030[Organism:noexp])
+
 
