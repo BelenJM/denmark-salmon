@@ -1,4 +1,4 @@
-# denmark-salmon
+# The genomic history of the Danish salmon: scripts and analysis
 Scripts and analysis of the study on the genomic history of the Danish salmon population (article in prep.)
 
 Scripts contain:
