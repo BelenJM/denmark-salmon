@@ -1,6 +1,5 @@
 # The genomic history of the Atlantic salmon in Denmark
-## scripts and analysis
-Scripts and analysis of the study on the genomic history of the Danish salmon population (article in prep.)
+Scripts and analysis of the study on the genomic history of the Danish population of Atlantic salmon (article in prep.)
 
 Scripts contain:
 1. Bioinformatics pipeline: from raw reads to vcf file
