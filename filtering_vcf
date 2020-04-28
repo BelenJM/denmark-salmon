@@ -1,0 +1,20 @@
+# Script to filter the VCF:
+# Based on filtering process from Manuzzi et al. (in prep.) and discussions with Alice Manuzzi and Romina Henriques.
+
+# 1. Only keep bi-allelic SNPs
+vcftools --vcf danishTempoA_Feb_baits2_p5_copy2.vcf --min-alleles 2 --max-alleles 2 --recode --recode-INFO-all --out 1.danishTempoA_baits_biallelic
+# 2. Filter out indels
+vcftools --vcf 1.danishTempoA_baits_biallelic.recode.vcf --remove-indels --recode --recode-INFO-all --out 2.danishTempoA_baits_noIndels
+# 3. Filter for individual with coverage less than 3 (DP<3)
+# We use R to measure coverage and create a list of individuals with coverage less than 3
+vcftools --vcf 2.danishTempoA_baits_noIndels.recode.vcf --remove indiv_less3DP --recode --recode-INFO-all --out 3.danishTempoA_baits_Indiv3DP 
+# 4. Filter out snps with a Minor Allele Frequency (MAF) below 0.05:
+vcftools --vcf 3.danishTempoA_baits_Indiv3DP.recode.vcf --maf 0.05 --recode --recode-INFO-all --out 4.danishTempoA_baits_maf5
+# 5. Filter out snps with coverage less than 3:
+vcftools --vcf 4.danishTempoA_baits_maf5.recode.vcf --exclude-positions snpPos_meanLess3 --recode --recode-INFO-all --out 4a.danishTempo_baits_snpsMeanLess3
+# 6. Filter out snps with coverage more than 95% quantile (more than 20):
+vcftools --vcf 4a.danishTempo_baits_snpsMeanLess3.recode.vcf --exclude-positions snpPos_meanMore20 --recode --recode-INFO-all --out 4b.danishTempo_baits_snpsMeanMore20
+# 8. after modifying the header adding the contig/chromosome info, prune the file:
+bcftools +prune -l 0.25 -w 800 4b.danishTempo_baits_snpsMeanMore20.recode.vcf -Ov -o 5.danishTempo_baits_prune800
+# 9.after checking in R, remove control individuals:
+vcftools --vcf 5.danishTempo_baits_prune800 --remove noControls --recode --recode-INFO-all --out 6.danishTempo_baits_noControls
