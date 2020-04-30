@@ -1,0 +1,19 @@
+# Explore the genome-wide Fst-differentiation by locus
+
+## Skjern population:
+# Plot in R using Manhattan plot:
+library(qqman)
+fst <- read.table("SK_beforeAfter_Fst.weir.fst", head=T)
+fst$SNP <- c(1:length(fst$CHRM))
+colnames(fst) <- c("CHROM","BP", "P", "CHR", "SNP")
+
+fst2 <- as.data.frame(fst)
+manhattan(fst2,chr="CHR",bp="BP",p="P",snp="SNP",ylim=c(0,1),logp=FALSE,ylab="Weir and Cockerham Fst")
+
+# Identify the SNPs over the 99% quantile of the Fst distribution:
+quantile(fst$P, probs=0.99, na.rm=T) # SNPs with Fst over: 0.1806686
+which(fst2$P>0.18)
+# highlight them in the Manhattan plot
+index <- which(fst2$P>0.18)
+snp_names <- fst2$SNP[index] # applies the index to the SNP vector
+manhattan(fst2,chr="CHR",bp="BP",p="P",snp="SNP",ylim=c(0,1),logp=F,ylab="Weir and Cockerham Fst",highlight=snp_names)
