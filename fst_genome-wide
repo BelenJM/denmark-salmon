@@ -1,12 +1,20 @@
 # Explore the genome-wide Fst-differentiation by locus
+## Method 1: VCFtools using Weir and Cockerman's Fst measure of differentiation
+# 1. Select the individuals from the populations you want to test pairwise-Fst
+vcftools --keep xx
+# 2. Estimate pairwise Fst
+vcftools --vcf xx --weir-c xx --weir xx --out xx
 
 ## Skjern population:
 # Plot in R using Manhattan plot:
 library(qqman)
+# read the output file from VCFtools in R:
 fst <- read.table("SK_beforeAfter_Fst.weir.fst", head=T)
-fst$SNP <- c(1:length(fst$CHRM))
-colnames(fst) <- c("CHROM","BP", "P", "CHR", "SNP")
-
+fst$SNP <- c(1:length(fst$CHROM))
+fst$CHROM <- as.factor(fst$CHR) # create a number instead of a str for each chromosome
+colnames(fst) <- c("CHROM","BP", "P", "SNP", "CHR)
+fst$CHROM <- as.factor(as.numeric(fst$CHR))
+fst$CHROM <- as.numeric(fst$CHROM)
 fst2 <- as.data.frame(fst)
 manhattan(fst2,chr="CHR",bp="BP",p="P",snp="SNP",ylim=c(0,1),logp=FALSE,ylab="Weir and Cockerham Fst")
 
@@ -17,3 +25,43 @@ which(fst2$P>0.18)
 index <- which(fst2$P>0.18)
 snp_names <- fst2$SNP[index] # applies the index to the SNP vector
 manhattan(fst2,chr="CHR",bp="BP",p="P",snp="SNP",ylim=c(0,1),logp=F,ylab="Weir and Cockerham Fst",highlight=snp_names)
+
+
+## Method 2: PCAdapt
+library(pcadapt)
+# Dataset for historical (1913-1955) vs modern (2008-2015)
+#SK <- read.pcadapt("before_after_breedingProgram/5e5.SK.recode.vcf", type="vcf")
+vcf5e5_SK <- read.vcfR("before_after_breedingProgram/5e5.SK.recode.vcf")
+vcf5e5_SK_genind <- vcfR2genind(vcf5e5_SK)
+# include pop list according to your pop of interest
+poplist.int <- c(rep(1, 26), rep(2, 60))
+
+# First, principal component analysis for choosing K
+x <- pcadapt(input = SK_1990_2015, K = 10) # Visualization for 10 K
+plot(x,option = "scores", i=1,j=2, pop = poplist.int) # K=3 # PCA of the 2 first PC
+plot(x, option="screeplot") # screeplot
+plot(x,option="manhattan") 
+plot(x, option = "qqplot")
+
+# Select the p-value for selecting outlier + the multiple-testing correction
+padj <- p.adjust(x$pvalues, method = "BH")
+alpha <- 0.01
+outliers <- which(padj < alpha)
+# How many outliers?
+length(outliers) 
+# Which PC are those outliers from?
+snp_pc <- get.pc(x,outliers)
+
+# Which regions of the genome do those SNPs correspond to?
+vcf5e5_SK_genind@all.names[snp_pc$SNP]
+vcf5e5_SK_genind@tab[c(ind),1:3]
+
+# Same Manhattan plot but with option to highlight the outlier loci in red
+coordY <- (-log10(x$pvalues[snp_pc$SNP]))
+coordX <- c(snp_pc$SNP)
+#plot(coordX, coordY, col="red")
+points(coordX, coordY, col="red")
+plot(1:length(x$pvalues), -log10(x$pvalues), xlab="SNP index", ylab="-log10(pvalues)")
+hist(x$pvalues, xlab = "p-values", main = NULL, breaks = 50, col = "orange")
+plot(x, option = "stat.distribution")
+
