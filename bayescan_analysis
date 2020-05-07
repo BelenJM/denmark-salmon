@@ -1,5 +1,6 @@
 # Convert bayescan file: from vcf to bayescan format, using PGDSpider. 
 # Options: SNP format, population file included (format: 2 columns, individual ID \t population)
+# From vcf to GESTE/BayeScan format
 
 # Running BAYESCAN in Computerome:
 # Using the R script included in Bayescan
