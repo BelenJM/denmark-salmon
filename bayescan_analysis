@@ -1,0 +1,55 @@
+# Convert bayescan file: from vcf to bayescan format, using PGDSpider. 
+# Options: SNP format, population file included (format: 2 columns, individual ID \t population)
+
+# Running BAYESCAN in Computerome:
+# Using the R script included in Bayescan
+# For more information, see the Bayescan manual: http://www.cmpg.unibe.ch/software/BayeScan/files/BayeScan2.0_manual.pdf
+# Function “plot_bayescan”, located in the “plot_R.r” file
+
+plot_bayescan("Run01_po10_5e5.SK1990_and_2015_fst.txt",FDR=0.05)
+plot_bayescan("Run01_po100_5e5.SK1990_and_2015_fst.txt, FDR=0.05)
+
+
+# The function plot_bayescan is contained within the script "plot_R.r"
+# I extracted the script from Bayescan:
+# NOTE: NOT MY CODE, JUST EXTRACTED FROM Matthieu Foll's BAYESCAN MANUAL
+# Please, cite the author and Bayescan for the use of it
+plot_bayescan<-function(res,FDR=0.05,size=1,pos=0.35,highlight=NULL,name_highlighted=F,add_text=T)
+{
+if (is.character(res))
+  res=read.table(res)
+
+colfstat=5
+colq=colfstat-2
+
+highlight_rows=which(is.element(as.numeric(row.names(res)),highlight))
+non_highlight_rows=setdiff(1:nrow(res),highlight_rows)
+
+outliers=as.integer(row.names(res[res[,colq]<=FDR,]))
+
+ok_outliers=TRUE
+if (sum(res[,colq]<=FDR)==0)
+        ok_outliers=FALSE;
+
+res[res[,colq]<=0.0001,colq]=0.0001
+
+# plot
+plot(log10(res[,colq]),res[,colfstat],xlim=rev(range(log10(res[,colq]))),xlab="log10(q value)",ylab=names(res[colfstat]),type="n")
+points(log10(res[non_highlight_rows,colq]),res[non_highlight_rows,colfstat],pch=19,cex=size)
+
+if (name_highlighted) {
+        if (length(highlight_rows)>0) {
+                text(log10(res[highlight_rows,colq]),res[highlight_rows,colfstat],row.names(res[highlight_rows,]),col="red",cex=size*1.2,font=2)
+        }
+}
+else {
+        points(log10(res[highlight_rows,colq]),res[highlight_rows,colfstat],col="red",pch=19,cex=size)
+        # add names of loci over p and vertical line
+        if (ok_outliers & add_text) {
+                text(log10(res[res[,colq]<=FDR,][,colq])+pos*(round(runif(nrow(res[res[,colq]<=FDR,]),1,2))*2-3),res[res[,colq]<=FDR,][,colfstat],row.names(res[res[,colq]<=FDR,]),cex=size)
+        }
+}
+lines(c(log10(FDR),log10(FDR)),c(-1,1),lwd=2)
+
+return(list("outliers"=outliers,"nb_outliers"=length(outliers)))
+}
