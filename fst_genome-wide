@@ -3,7 +3,7 @@
 # 1. Select the individuals from the populations you want to test pairwise-Fst
 vcftools --keep xx
 # 2. Estimate pairwise Fst
-vcftools --vcf xx --weir-c xx --weir xx --out xx
+vcftools --vcf ../5e5.gatk4_laks_onTarget_lociKeepHo0.5.recode.vcf --weir-fst-pop SK1913 --weir-fst-pop SK1990 --out SK_1913_1990_Fst
 
 ## Skjern population:
 # Plot in R using Manhattan plot:
@@ -12,11 +12,11 @@ library(qqman)
 fst <- read.table("SK_beforeAfter_Fst.weir.fst", head=T)
 fst$SNP <- c(1:length(fst$CHROM))
 fst$CHROM <- as.factor(fst$CHR) # create a number instead of a str for each chromosome
-colnames(fst) <- c("CHROM","BP", "P", "SNP", "CHR)
+colnames(fst) <- c("CHROM","BP", "P", "SNP", "CHR")
 fst$CHROM <- as.factor(as.numeric(fst$CHR))
 fst$CHROM <- as.numeric(fst$CHROM)
 fst2 <- as.data.frame(fst)
-manhattan(fst2,chr="CHR",bp="BP",p="P",snp="SNP",ylim=c(0,1),logp=FALSE,ylab="Weir and Cockerham Fst")
+manhattan(fst2,chr="CHROM",bp="POS",p="WEIR_AND_COCKERHAM_FST",snp="SNP",ylim=c(0,1),logp=FALSE,ylab="Weir and Cockerham Fst")
 
 # Identify the SNPs over the 99% quantile of the Fst distribution:
 quantile(fst$P, probs=0.99, na.rm=T) # SNPs with Fst over: 0.1806686
@@ -65,3 +65,5 @@ plot(1:length(x$pvalues), -log10(x$pvalues), xlab="SNP index", ylab="-log10(pval
 hist(x$pvalues, xlab = "p-values", main = NULL, breaks = 50, col = "orange")
 plot(x, option = "stat.distribution")
 
+
+## Method 3: BAYESCAN
