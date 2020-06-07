@@ -1,0 +1,1 @@
+for f in $(cat ../name_samples2); do freebayes -f ../../genome/genome/GCF_000233375.1_ICSASG_v2_genomic.fa --region NC_027324.1:28656040-28720890 --haplotype-length -1 --report-monomorphic ../TSP_SAMPLE_OPT_BARCODE/$f.nodup.sorted.bam --vcf $f.vcf; done
