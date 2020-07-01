@@ -1,0 +1,16 @@
+# Treemix 
+
+# First, plink file has been created using the 5e6 vcf file:
+plink --noweb --const-fid 0 --vcf ../gatk4_merge_vcf/5e6.gatk4_laks_onTarget_prune800 --allow-extra-chr --recode --out 5e6.plink
+# Create dat file: same two columns as fam file and third column with cluster id
+plink --file 5e6.plink --double-id --allow-extra-chr --chr-set 29 --make-just-fam
+
+# Estimate allele freq using:
+plink --file 5e6.plink --missing --freq --double-id --allow-extra-chr --chr-set 29 --within 5e6.dat --out 5e6.plink2
+
+# Following Quentin Rougemont's GitHub here (https://github.com/QuentinRougemont/abc_inferences)
+gzip 5e6.plink2.frq.strat
+# Using Quentin's Python script to convert plink to treemix format:
+python plink2treemix.py 5e6.plink2.frq.strat.gz 5e6.treemix.frq.gz
+
+
