@@ -8,9 +8,14 @@ plink --file 5e6.plink --double-id --allow-extra-chr --chr-set 29 --make-just-fa
 # Estimate allele freq using:
 plink --file 5e6.plink --missing --freq --double-id --allow-extra-chr --chr-set 29 --within 5e6.dat --out 5e6.plink2
 
-# Following Quentin Rougemont's GitHub here (https://github.com/QuentinRougemont/abc_inferences)
+# Following manual here
 gzip 5e6.plink2.frq.strat
-# Using Quentin's Python script to convert plink to treemix format:
+# Manual Python conversion script
 python plink2treemix.py 5e6.plink2.frq.strat.gz 5e6.treemix.frq.gz
 
+# visualization of the tree and residuals to see how the model fits the data
+R
+source("src/plotting funcs.R")
+plot_tree("out_stem")
+plot_resid("out_stem", "pop_order") # create pop_order file: one line per pop name, for visualization purposes
 
