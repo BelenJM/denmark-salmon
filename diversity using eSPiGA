@@ -1,0 +1,1 @@
+./bin/gVCF2tFasta -v ../../../Salmon/LAKS2019/steps/gatk4_merge_vcf/5e5.gatk4_laks_onTarget_lociKeepHo0.5.recode.vcf -r ../../../Salmon/genome/genome/GCF_000233375.1_ICSASG_v2_genomic.fa.gz -o laks_tfasta -n ../../../Salmon/genome/genome/chrom_size2
