@@ -2,7 +2,7 @@
 vcftools --vcf ../5e5.gatk4_laks_onTarget_lociKeepHo0.5.recode.vcf --keep Danish1913-1930early-SK2008-SK2015 --recode --recode-INFO-all --out 5e5.Danish1913-1930early-SK2008-SK2015
 
 # Filter out fixed SNPs
-vcftools --vcf 5e5.Foreign.recode.vcf --sites-pi --out 5e5.Foreign
+vcftools --vcf 5e5.Foreign.recode.vcf --site-pi --out 5e5.Foreign
 cat 5e5.Foreign.sites.pi | mawk '!/CHR/' | awk '$3 == 0' | cut -f1,2 >> 5e5.Foreign_FixedSNPs
 vcftools --vcf 5e5.Foreign.recode.vcf --exclude-positions 5e5.Foreign_FixedSNPs --recode --recode-INFO-all --out 5e5.Foreign_noFixedSNPs
 
