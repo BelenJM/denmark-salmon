@@ -1,6 +1,6 @@
 # calculate allele freq either using freq or counts
-# in this case, we use counts from vcftools (counts2 option outputs just the counts)
+# in this case, we use freq from vcftools (counts2 option outputs just the counts)
 # with --counts we can check which allele is which (for checking purposes)
 
-vcftools --vcf 5e5.SK2015.recode.vcf --counts --out 5e5.SK2015
+vcftools --vcf 5e5.SK2015.recode.vcf --freq --out 5e5.SK2015
 # output: 5e5.SK2015.frq.count
