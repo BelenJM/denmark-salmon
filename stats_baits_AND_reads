@@ -1,0 +1,125 @@
+#!/bin/sh
+### Note: No commands may be executed until after the #PBS lines
+### Account information
+#PBS -W group_list=dp_00007 -A dp_00007
+### Job name (comment out the next line to get the name of the script used as the job name)
+#PBS -N stats_script.sh
+### Output files (comment out the next 2 lines to get the job name used instead)
+#PBS -e stats_script.err
+#PBS -o stats_script.log
+### Only send mail when job is aborted or terminates abnormally
+#PBS -m n
+### Number of nodes
+#PBS -l nodes=1:ppn=32
+### Memory
+#PBS -l mem=120gb
+### Requesting time - format is <days>:<hours>:<minutes>:<seconds> (here, 12 hours)
+#PBS -l walltime=300:00:00
+### Add current shell environment to job (comment out if not needed)
+#PBS -V
+### Forward X11 connection (comment out if not needed)
+###PBS -X
+
+
+# Go to the directory from where the job was submitted (initial directory is $HOME)
+echo Working directory is $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR
+
+### Here follows the user commands:
+# Define number of processors
+NPROCS=`wc -l < $PBS_NODEFILE`
+echo This job has allocated $NPROCS nodes
+
+# STATS on READS AND EFFICACITY OF BAITS
+
+# Load all required modules for the job
+# Packages:
+module load tools
+module load ngs
+module load samtools/1.8
+module load bedtools/2.27.1
+
+# commands
+# open the file I will be storing info
+printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "Ind" "Reads_prefilt" "Reads_after_adaptor" "Reads_after_contam_human" "Reads_after_contam_bact" "Reads_map" "Reads_mapped" "Reads_pair1" "Reads_pair2" "Pairs_map" "Singletons" "Diff_chrom" "Perc_reads_map" "Duplic" "Final_reads" "Reads_baits" "Mean_reads_baits" "Reads_baits350" "Mean_reads_baits350" "No_reads_target" "No_reads_target350" >> output_bioinfo_01052021.txt
+
+# script to have some stats on the genome sequencing pipeline
+# of the salmon, analysed during 2019/2020
+
+for i in $(cat names_data)
+    do echo "$i"
+
+    # no of reads sequenced
+    #reads_prefilt=$(zcat 1.AdapterRemoval_output/$i.trim1.pair1.truncated.gz | wc -l | awk '{print $1 / 4}')
+
+    # no of reads after after-adaptor filter
+    #reads_after_adaptor=$(zcat 1.AdapterRemoval_output/$i.trim4.pair1.truncated.gz | wc -l | awk '{print $1 / 4}')
+
+    # no of reads after-contamination1 filter
+    #reads_after_contam_human=$(zcat 2.Contamination_check_output/$i.noHuman_1.fastq.gz | wc -l | awk '{print $1 / 4}')
+
+    # no of reads after-contamination2 filter
+    #reads_after_contam_bact=$(zcat 2.Contamination_check_output/$i.noHumanBact_1.fastq.gz | wc -l | awk '{print $1 / 4}')
+
+    # no of reads to map
+    reads_map=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk 'NR == 1 {print $1}')
+
+    # no of reads mapping back to genome:
+    reads_mapped=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk 'NR == 5 {print $1}')
+
+    # no of reads pair1 mapped:
+    reads_pair1=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk 'NR == 7 {print $1}')
+
+    # no of reads pair1 mapped:
+    reads_pair2=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk 'NR == 8 {print $1}')
+
+    # no of reads mapping back to genome properly paired
+    pairs_map=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk 'NR == 9 {print $1}')
+
+    # singletons:
+    singletons=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk 'NR == 11 {print $1}')
+
+    # diff chromiosome:
+    diff_chrom=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk 'NR == 12 {print $1}')
+
+    # percentage of reads mapping back to genome
+    perc_reads_map=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk -F "[(|%]" 'NR == 5 {print $2}')
+
+    # no of reads that are duplicates, and will be removed
+    duplic=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk 'NR == 4 {print $1}')
+
+    # no of total reads proper pairs after removing duplicates
+    #final_reads=$(samtools flagstat 4c.Paleomix_finalrun/$i.gadMor2.realigned.bam | awk 'NR == 1 {print $1}')
+
+    # no of reads mapping back to baits
+    bedtools intersect -c -a ../../baits/baits_BED_exact_withoutSexBaits_sorted.bed -b ../remove_duplicatesGenomeDK/${i}.nodup.sorted.bam > ${i}.intersect
+    reads_baits=$(cat $i.intersect | awk '$10 >= 1' | wc -l)
+
+    # mean of reads per bait
+    #mean_reads_baits=$(cat 8.stats/$i.intersect | awk '$4>=1' | awk '{total += $4} END { print total/NR }')
+
+    # no of reads mapping back to baits+350bp
+    bedtools intersect -c -a ../../baits/baits_350bp.bed -b ../remove_duplicatesGenomeDK/${i}.nodup.sorted.bam > ${i}.intersect350bp
+
+    # no of total reads proper pairs after removing duplicates
+    final_reads=$(samtools flagstat ../remove_duplicatesGenomeDK/$i.nodup.sorted.bam | awk 'NR == 1 {print $1}')
+
+    # mean of reads per bait
+    mean_reads_baits=$(cat $i.intersect | awk '$10>=1' | awk '{total += $10} END { print total/NR }')
+
+    # no of reads mapping back to baits+350bp
+    reads_baits350=$(cat $i.intersect350bp | awk '$10 >= 1' | wc -l)
+    # mean of reads per bait+350bp
+    mean_reads_baits350=$(cat $i.intersect350bp | awk '$10>=1' | awk '{total += $10} END { print total/NR}')
+    # reads on target
+    no_reads_onTarget=$(cat $i.intersect | awk '$10 >= 1' | awk '{ sum += $10; } END { print sum; }')
+    # reads on target+350bp
+    no_reads_onTarget350=$(cat $i.intersect350bp | awk '$10 >= 1' | awk '{ sum += $10; } END { print sum; }')
+
+    # coverage
+    #bedtools coverage -hist -b ../remove_duplicatesGenomeDK/${i}.nodup.sorted.bam -a ../../baits/baits_350bp.bed > ${i}.baits_coverage.all.txt
+    #bedtools coverage -hist -b ../remove_duplicatesGenomeDK/${i}.nodup.sorted.bam -a ../../baits/baits_350bp.bed | grep 'all' > ${i}.hist.all.txt
+
+    printf '%s\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t%s\n' "${i}" "NA" "NA" "NA" "NA" "${reads_map}" "${reads_mapped}" "${reads_pair1}" "${reads_pair2}" "{$pairs_map}" "${singletons}" "${diff_chrom}" "${perc_reads_map}" "${duplic}" "${final_reads}" "${reads_baits}" "${mean_reads_baits}" "${reads_baits350}" "${mean_reads_baits350}" "${no_reads_onTarget}" "${no_reads_onTarget350}" >> output_bioinfo_01052021.txt
+
+done
